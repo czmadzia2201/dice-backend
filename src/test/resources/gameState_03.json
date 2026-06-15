@@ -1,0 +1,167 @@
+{
+  "id":"210ed747-1519-495a-9c49-09ed1c9437b4",
+  "createdAt":"2026-06-14T19:36:10.841585200Z",
+  "currentRoll": [
+    2,
+    2,
+    6,
+    5,
+    1
+  ],
+  "availableCategories": [
+    "SIXES"
+  ],
+  "score": 0,
+  "totalScore": 140,
+  "rollHistory": [
+    {
+      "rollNumber": 1,
+      "diceValues": [
+        2,
+        1,
+        1,
+        4,
+        6
+      ],
+      "category": "ONES",
+      "score": 2
+    },
+    {
+      "rollNumber": 2,
+      "diceValues": [
+        3,
+        1,
+        3,
+        5,
+        5
+      ],
+      "category": "THREES",
+      "score": 6
+    },
+    {
+      "rollNumber": 3,
+      "diceValues": [
+        3,
+        6,
+        1,
+        2,
+        4
+      ],
+      "category": "SMALL_STRAIGHT",
+      "score": 30
+    },
+    {
+      "rollNumber": 4,
+      "diceValues": [
+        3,
+        2,
+        3,
+        2,
+        2
+      ],
+      "category": "FULL_HOUSE",
+      "score": 25
+    },
+    {
+      "rollNumber": 5,
+      "diceValues": [
+        1,
+        3,
+        1,
+        6,
+        3
+      ],
+      "category": "POKER",
+      "score": 0
+    },
+    {
+      "rollNumber": 6,
+      "diceValues": [
+        5,
+        2,
+        4,
+        5,
+        1
+      ],
+      "category": "FIVES",
+      "score": 10
+    },
+    {
+      "rollNumber": 7,
+      "diceValues": [
+        1,
+        3,
+        6,
+        4,
+        5
+      ],
+      "category": "FOURS",
+      "score": 4
+    },
+    {
+      "rollNumber": 8,
+      "diceValues": [
+        3,
+        6,
+        4,
+        5,
+        3
+      ],
+      "category": "CHANCE",
+      "score": 21
+    },
+    {
+      "rollNumber": 9,
+      "diceValues": [
+        3,
+        5,
+        6,
+        1,
+        2
+      ],
+      "category": "TWOS",
+      "score": 2
+    },
+    {
+      "rollNumber": 10,
+      "diceValues": [
+        5,
+        1,
+        3,
+        2,
+        4
+      ],
+      "category": "LARGE_STRAIGHT",
+      "score": 40
+    },
+    {
+      "rollNumber": 11,
+      "diceValues": [
+        3,
+        1,
+        3,
+        6,
+        2
+      ],
+      "category": "FOUR_OF_A_KIND",
+      "score": 0
+    },
+    {
+      "rollNumber": 12,
+      "diceValues": [
+        3,
+        5,
+        4,
+        1,
+        2
+      ],
+      "category": "THREE_OF_A_KIND",
+      "score": 0
+    }
+  ],
+  "gamePhase": "CHOICE",
+  "optimalResult": {
+    "totalScore": null,
+    "rollHistory": null
+  }
+}

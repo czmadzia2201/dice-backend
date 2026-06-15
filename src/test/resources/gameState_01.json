@@ -1,0 +1,46 @@
+{
+  "id":"9fff1a10-b5cc-443b-a5a1-e083ac2bfc86",
+  "createdAt":"2026-06-14T19:36:10.841585200Z",
+  "currentRoll": [
+    3,
+    1,
+    3,
+    5,
+    5
+  ],
+  "availableCategories": [
+    "TWOS",
+    "THREES",
+    "FOURS",
+    "FIVES",
+    "SIXES",
+    "THREE_OF_A_KIND",
+    "FOUR_OF_A_KIND",
+    "FULL_HOUSE",
+    "SMALL_STRAIGHT",
+    "LARGE_STRAIGHT",
+    "POKER",
+    "CHANCE"
+  ],
+  "score": 2,
+  "totalScore": 2,
+  "rollHistory": [
+    {
+      "rollNumber": 1,
+      "diceValues": [
+        2,
+        1,
+        1,
+        4,
+        6
+      ],
+      "category": "ONES",
+      "score": 2
+    }
+  ],
+  "gamePhase": "ROLL",
+  "optimalResult": {
+    "totalScore": null,
+    "rollHistory": null
+  }
+}
