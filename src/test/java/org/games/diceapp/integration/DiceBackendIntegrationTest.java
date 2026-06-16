@@ -48,4 +48,38 @@ public class DiceBackendIntegrationTest {
         assertThat(gameState.getId()).isNotNull();
         assertThat(gameState.getCurrentRoll()).hasSize(5);
     }
+
+    @Test
+    void shouldScoreCategory() {
+        // Given: create a new game and roll dice
+        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/roll", null, GameState.class);
+        GameState initialState = rollResponse.getBody();
+        UUID gameId = initialState.getId();
+
+        // When: score a category (e.g., ONES)
+        ResponseEntity<GameState> scoreResponse = restTemplate.postForEntity("/dice/" + gameId + "/score", org.games.diceapp.model.Category.ONES, GameState.class);
+
+        // Then: score should be updated and category removed from available
+        assertThat(scoreResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        GameState updatedState = scoreResponse.getBody();
+        assertThat(updatedState).isNotNull();
+        assertThat(updatedState.getAvailableCategories()).doesNotContain(org.games.diceapp.model.Category.ONES);
+        assertThat(updatedState.getScore()).isNotNull();
+        assertThat(updatedState.getRollHistory()).hasSize(1);
+    }
+
+    @Test
+    void shouldCreateNewGame() {
+        // When: create a new game
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/new-game", null, GameState.class);
+
+        // Then: a new game should be initialized
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        GameState gameState = response.getBody();
+        assertThat(gameState).isNotNull();
+        assertThat(gameState.getId()).isNotNull();
+        assertThat(gameState.getAvailableCategories()).hasSize(13); // Assuming all 13 categories are available
+        assertThat(gameState.getRollHistory()).isEmpty();
+    }
+
 }
