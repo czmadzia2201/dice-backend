@@ -11,6 +11,7 @@ public class GameState {
     private Instant createdAt;
     private List<Integer> currentRoll;
     private Set<Category> availableCategories;
+    private Set<Category> manualAvailableCategories;
     private Integer score;
     private Integer totalScore;
     private List<RollEntry> rollHistory;
@@ -25,8 +26,6 @@ public class GameState {
         this.availableCategories = EnumSet.allOf(Category.class);
         this.rollHistory = new ArrayList<>();
         this.gamePhase = GamePhase.ROLL;
-        this.optimalResult = new ResultSummary();
-        this.manualResult = new ResultSummary();
     }
 
 }

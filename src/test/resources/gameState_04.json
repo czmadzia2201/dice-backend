@@ -9,6 +9,7 @@
     1
   ],
   "availableCategories": [],
+  "manualAvailableCategories": [],
   "score": 6,
   "totalScore": 146,
   "rollHistory": [
@@ -170,8 +171,6 @@
     }
   ],
   "gamePhase": "FINISHED",
-  "optimalResult": {
-    "totalScore": null,
-    "rollHistory": null
-  }
+  "optimalResult": null,
+  "manualResult": null
 }

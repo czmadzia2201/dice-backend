@@ -2,13 +2,13 @@ package org.games.diceapp.service;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import org.games.diceapp.util.DiceUtils;
 import org.games.diceapp.model.*;
 import org.games.diceapp.repository.GameStateStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 @Service
 @AllArgsConstructor
@@ -54,35 +54,17 @@ public class DiceService {
         return gameState;
     }
 
-    public GameState manualScore(UUID gameId, ManualChoice choice) {
+    public GameState initManualGame(UUID gameId) {
         GameState gameState = gameStateStore.get(gameId);
-        if (gameState.getManualResult().getRollHistory() == null) {
-            gameState.getManualResult().setRollHistory(generateEmptyManualHistory());
-            gameState.getManualResult().setTotalScore(0);
-            gameState.setAvailableCategories(EnumSet.allOf(Category.class));
-        }
-        if (choice.action() == ChoiceAction.ASSIGN) {
-            List<Integer> diceValues = gameState.getRollHistory().get(choice.rollNumber() - 1).diceValues();
-            int score = choice.category().calculateScore(diceValues);
-            RollEntry rollEntry = new RollEntry(choice.rollNumber(), diceValues, choice.category(), score);
-            gameState.getManualResult().getRollHistory().set(choice.rollNumber() - 1, rollEntry);
-            gameState.getManualResult().setTotalScore(gameState.getManualResult().getTotalScore() + score);
-            gameState.getAvailableCategories().remove(choice.category());
-        }
-        if (choice.action() == ChoiceAction.CLEAR) {
-            RollEntry rollEntry = gameState.getManualResult().getRollHistory().remove(choice.rollNumber() - 1);
-            gameState.getManualResult().setTotalScore(gameState.getManualResult().getTotalScore() - rollEntry.score());
-            gameState.getAvailableCategories().add(rollEntry.category());
-        }
+        gameState.setManualResult(new ResultSummary(0, DiceUtils.generateEmptyManualHistory()));
+        gameState.setManualAvailableCategories(EnumSet.allOf(Category.class));
         return gameState;
     }
 
-    private List<RollEntry> generateEmptyManualHistory() {
-        List<RollEntry> entries = new ArrayList<>();
-        for (int i = 1; i <= 13; i++) {
-            entries.add(new RollEntry(i, List.of(), null, null));
-        }
-        return entries;
+    public GameState manualScore(UUID gameId, ManualChoice choice) {
+        GameState gameState = gameStateStore.get(gameId);
+        choice.action().updateGameState(gameState, choice);
+        return gameState;
     }
 
     private List<Integer> generateDiceValues() {

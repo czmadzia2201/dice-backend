@@ -14,6 +14,7 @@
     "FOUR_OF_A_KIND",
     "LARGE_STRAIGHT"
   ],
+  "manualAvailableCategories": [],
   "score": 2,
   "totalScore": 100,
   "rollHistory": [
@@ -127,8 +128,6 @@
     }
   ],
   "gamePhase": "CHOICE",
-  "optimalResult": {
-    "totalScore": null,
-    "rollHistory": null
-  }
+  "optimalResult": null,
+  "manualResult": null
 }

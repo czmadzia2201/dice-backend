@@ -46,4 +46,9 @@ public class DiceController {
         return diceService.manualScore(id, choice);
     }
 
+    @PostMapping("/{id}/init-manual")
+    public GameState initManualGame(@PathVariable UUID id) {
+        return diceService.initManualGame(id);
+    }
+
 }

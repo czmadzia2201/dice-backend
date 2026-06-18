@@ -10,37 +10,37 @@ public enum Category {
     ONES {
         @Override
         public int calculateScore(List<Integer> dice) {
-            return countNumOccurrances(dice, 1);
+            return countNumOccurrences(dice, 1);
         }
     },
     TWOS {
         @Override
         public int calculateScore(List<Integer> dice) {
-            return countNumOccurrances(dice, 2);
+            return countNumOccurrences(dice, 2);
         }
     },
     THREES {
         @Override
         public int calculateScore(List<Integer> dice) {
-            return countNumOccurrances(dice, 3);
+            return countNumOccurrences(dice, 3);
         }
     },
     FOURS {
         @Override
         public int calculateScore(List<Integer> dice) {
-            return countNumOccurrances(dice, 4);
+            return countNumOccurrences(dice, 4);
         }
     },
     FIVES {
         @Override
         public int calculateScore(List<Integer> dice) {
-            return countNumOccurrances(dice, 5);
+            return countNumOccurrences(dice, 5);
         }
     },
     SIXES {
         @Override
         public int calculateScore(List<Integer> dice) {
-            return countNumOccurrances(dice, 6);
+            return countNumOccurrences(dice, 6);
         }
     },
     THREE_OF_A_KIND {
@@ -92,13 +92,9 @@ public enum Category {
         }
     };
 
-    public static List<Category> getCategories() {
-        return List.of(values());
-    }
-
     public abstract int calculateScore(List<Integer> dice);
 
-    private static Integer countNumOccurrances(List<Integer> dice, Integer num) {
+    private static Integer countNumOccurrences(List<Integer> dice, Integer num) {
         return dice.stream().filter(i -> i.equals(num)).mapToInt(Integer::intValue).sum();
     }
 

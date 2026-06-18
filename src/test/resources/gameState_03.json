@@ -11,6 +11,7 @@
   "availableCategories": [
     "SIXES"
   ],
+  "manualAvailableCategories": [],
   "score": 0,
   "totalScore": 140,
   "rollHistory": [
@@ -160,8 +161,6 @@
     }
   ],
   "gamePhase": "CHOICE",
-  "optimalResult": {
-    "totalScore": null,
-    "rollHistory": null
-  }
+  "optimalResult": null,
+  "manualResult": null
 }

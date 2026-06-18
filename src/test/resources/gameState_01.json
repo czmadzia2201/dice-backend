@@ -22,6 +22,7 @@
     "POKER",
     "CHANCE"
   ],
+  "manualAvailableCategories": [],
   "score": 2,
   "totalScore": 2,
   "rollHistory": [
@@ -39,8 +40,6 @@
     }
   ],
   "gamePhase": "ROLL",
-  "optimalResult": {
-    "totalScore": null,
-    "rollHistory": null
-  }
+  "optimalResult": null,
+  "manualResult": null
 }

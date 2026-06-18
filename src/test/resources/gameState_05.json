@@ -1,0 +1,287 @@
+{
+  "id": "c89592fb-5f4e-40cd-a663-92657430e4a3",
+  "createdAt": "2026-06-18T11:50:22.297461100Z",
+  "currentRoll": [
+    2,
+    4,
+    1,
+    3,
+    5
+  ],
+  "availableCategories": [],
+  "manualAvailableCategories": [
+    "ONES",
+    "TWOS",
+    "THREES",
+    "FOURS",
+    "FIVES",
+    "THREE_OF_A_KIND",
+    "FOUR_OF_A_KIND",
+    "LARGE_STRAIGHT",
+    "POKER",
+    "CHANCE"
+  ],
+  "score": 30,
+  "totalScore": 121,
+  "rollHistory": [
+    {
+      "rollNumber": 1,
+      "diceValues": [
+        4,
+        1,
+        2,
+        4,
+        2
+      ],
+      "category": "TWOS",
+      "score": 4
+    },
+    {
+      "rollNumber": 2,
+      "diceValues": [
+        1,
+        6,
+        4,
+        1,
+        5
+      ],
+      "category": "ONES",
+      "score": 2
+    },
+    {
+      "rollNumber": 3,
+      "diceValues": [
+        2,
+        6,
+        2,
+        6,
+        2
+      ],
+      "category": "FULL_HOUSE",
+      "score": 25
+    },
+    {
+      "rollNumber": 4,
+      "diceValues": [
+        2,
+        5,
+        2,
+        3,
+        1
+      ],
+      "category": "POKER",
+      "score": 0
+    },
+    {
+      "rollNumber": 5,
+      "diceValues": [
+        5,
+        1,
+        6,
+        2,
+        1
+      ],
+      "category": "FOUR_OF_A_KIND",
+      "score": 0
+    },
+    {
+      "rollNumber": 6,
+      "diceValues": [
+        5,
+        3,
+        1,
+        6,
+        2
+      ],
+      "category": "THREES",
+      "score": 3
+    },
+    {
+      "rollNumber": 7,
+      "diceValues": [
+        3,
+        3,
+        5,
+        5,
+        4
+      ],
+      "category": "FIVES",
+      "score": 10
+    },
+    {
+      "rollNumber": 8,
+      "diceValues": [
+        1,
+        1,
+        3,
+        2,
+        2
+      ],
+      "category": "LARGE_STRAIGHT",
+      "score": 0
+    },
+    {
+      "rollNumber": 9,
+      "diceValues": [
+        5,
+        1,
+        1,
+        1,
+        3
+      ],
+      "category": "THREE_OF_A_KIND",
+      "score": 11
+    },
+    {
+      "rollNumber": 10,
+      "diceValues": [
+        1,
+        1,
+        4,
+        4,
+        1
+      ],
+      "category": "FOURS",
+      "score": 8
+    },
+    {
+      "rollNumber": 11,
+      "diceValues": [
+        5,
+        6,
+        6,
+        3,
+        3
+      ],
+      "category": "SIXES",
+      "score": 12
+    },
+    {
+      "rollNumber": 12,
+      "diceValues": [
+        6,
+        1,
+        6,
+        1,
+        2
+      ],
+      "category": "CHANCE",
+      "score": 16
+    },
+    {
+      "rollNumber": 13,
+      "diceValues": [
+        2,
+        4,
+        1,
+        3,
+        5
+      ],
+      "category": "SMALL_STRAIGHT",
+      "score": 30
+    }
+  ],
+  "gamePhase": "FINISHED",
+  "optimalResult": null,
+  "manualResult": {
+    "totalScore": 67,
+    "rollHistory": [
+      {
+        "rollNumber": 1,
+        "diceValues": [],
+        "category": null,
+        "score": null
+      },
+      {
+        "rollNumber": 2,
+        "diceValues": [],
+        "category": null,
+        "score": null
+      },
+      {
+        "rollNumber": 3,
+        "diceValues": [
+          2,
+          6,
+          2,
+          6,
+          2
+        ],
+        "category": "FULL_HOUSE",
+        "score": 25
+      },
+      {
+        "rollNumber": 4,
+        "diceValues": [],
+        "category": null,
+        "score": null
+      },
+      {
+        "rollNumber": 5,
+        "diceValues": [],
+        "category": null,
+        "score": null
+      },
+      {
+        "rollNumber": 6,
+        "diceValues": [],
+        "category": null,
+        "score": null
+      },
+      {
+        "rollNumber": 7,
+        "diceValues": [],
+        "category": null,
+        "score": null
+      },
+      {
+        "rollNumber": 8,
+        "diceValues": [],
+        "category": null,
+        "score": null
+      },
+      {
+        "rollNumber": 9,
+        "diceValues": [],
+        "category": null,
+        "score": null
+      },
+      {
+        "rollNumber": 10,
+        "diceValues": [],
+        "category": null,
+        "score": null
+      },
+      {
+        "rollNumber": 11,
+        "diceValues": [],
+        "category": null,
+        "score": null
+      },
+      {
+        "rollNumber": 12,
+        "diceValues": [
+          6,
+          1,
+          6,
+          1,
+          2
+        ],
+        "category": "SIXES",
+        "score": 12
+      },
+      {
+        "rollNumber": 13,
+        "diceValues": [
+          2,
+          4,
+          1,
+          3,
+          5
+        ],
+        "category": "SMALL_STRAIGHT",
+        "score": 30
+      }
+    ]
+  }
+}
