@@ -1,25 +1,20 @@
 package org.games.diceapp.service;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.games.diceapp.util.DiceUtils;
 import org.games.diceapp.model.*;
 import org.games.diceapp.repository.GameStateStore;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class DiceService {
 
-    @Autowired
-    private GameStateStore gameStateStore;
+    private final GameStateStore gameStateStore;
 
-    @Autowired
-    private OptimalResultService optimalResultService;
+    private final OptimalResultService optimalResultService;
 
     public GameState newGame() {
         return gameStateStore.createNewGame();

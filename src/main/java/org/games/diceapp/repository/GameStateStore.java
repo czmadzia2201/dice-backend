@@ -1,5 +1,6 @@
 package org.games.diceapp.repository;
 
+import org.games.diceapp.exception.GameNotFoundException;
 import org.games.diceapp.model.GameState;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +23,11 @@ public class GameStateStore {
     }
 
     public GameState get(UUID gameId) {
-        return games.get(gameId);
+        GameState gamestate = games.get(gameId);
+        if (gamestate == null) {
+            throw new GameNotFoundException(gameId);
+        }
+        return gamestate;
     }
 
     public void save(GameState gameState) {

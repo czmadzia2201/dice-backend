@@ -1,4 +1,5 @@
 package org.games.diceapp.integration;
+
 import org.games.diceapp.model.*;
 import org.games.diceapp.repository.GameStateStore;
 import org.games.diceapp.util.TestUtils;
@@ -40,6 +41,19 @@ public class DiceIntegrationTest {
         assertThat(gameState.getId()).isEqualTo(gameId);
         assertThat(gameState.getCurrentRoll()).isNotEmpty();
         assertThat(gameState.getCurrentRoll()).hasSize(5);
+    }
+
+    @Test
+    public void shouldReturnNotFoundStatusOnGameIdNotFound() {
+        // GIVEN
+        UUID gameId = UUID.randomUUID();
+
+        // WHEN
+        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/" + gameId + "/roll", null, GameState.class);
+
+        // THEN
+        assertThat(rollResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        System.out.println(rollResponse.getBody());
     }
 
     @Test

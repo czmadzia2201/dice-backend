@@ -8,10 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,17 +17,19 @@ public class DiceServiceTest {
     @Autowired
     private DiceService diceService;
 
+    private final Map<String, UUID> gameIds = new HashMap<>();
+
     @BeforeEach
     void setUp() throws Exception {
         GameStateStore gameStateStore = new GameStateStore();
-        gameStateStore.save(TestUtils.loadGameStateFromJson("gameState_01.json"));
-        gameStateStore.save(TestUtils.loadGameStateFromJson("gameState_02.json"));
-        gameStateStore.save(TestUtils.loadGameStateFromJson("gameState_03.json"));
-        gameStateStore.save(TestUtils.loadGameStateFromJson("gameState_04.json"));
-        gameStateStore.save(TestUtils.loadGameStateFromJson("gameState_05.json"));
-        diceService = new DiceService(
-                gameStateStore,
-                new OptimalResultService()
+        List<String> inputJsons = List.of("gameState_01.json", "gameState_02.json",
+                "gameState_03.json", "gameState_04.json", "gameState_05.json");
+        for (String inputJson : inputJsons) {
+            GameState gameState = TestUtils.loadGameStateFromJson(inputJson);
+            gameStateStore.save(gameState);
+            gameIds.put(inputJson, gameState.getId());
+        }
+        diceService = new DiceService(gameStateStore, new OptimalResultService()
         );
     }
 
@@ -62,7 +61,7 @@ public class DiceServiceTest {
 
     @Test
     void rollDice_shouldGenerateNewRoll() {
-        GameState gameState = diceService.rollDice(UUID.fromString("9fff1a10-b5cc-443b-a5a1-e083ac2bfc86"));
+        GameState gameState = diceService.rollDice(gameIds.get("gameState_01.json"));
 
         assertEquals(5, gameState.getCurrentRoll().size());
         assertTrue(gameState.getCurrentRoll().stream()

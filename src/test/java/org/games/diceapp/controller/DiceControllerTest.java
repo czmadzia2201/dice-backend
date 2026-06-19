@@ -1,6 +1,7 @@
 package org.games.diceapp.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.games.diceapp.exception.GameNotFoundException;
 import org.games.diceapp.model.*;
 import org.games.diceapp.service.DiceService;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,6 +55,21 @@ class DiceControllerTest {
         mockMvc.perform(post("/dice/roll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNotEmpty());
+    }
+
+    @Test
+    void shouldReturnNotFoundStatus_gameIdNotFound() throws Exception{
+        UUID gameId = UUID.randomUUID();
+        when(diceService.rollDice(gameId)).thenThrow(new GameNotFoundException(gameId));
+
+        mockMvc.perform(post(format("/dice/%s/roll", gameId)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    assertNotNull(result.getResolvedException());
+                    assertEquals("Game not found: " + gameId,
+                            result.getResolvedException().getMessage()
+                    );
+                });
     }
 
     @Test
