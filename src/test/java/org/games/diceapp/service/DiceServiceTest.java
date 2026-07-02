@@ -35,19 +35,21 @@ public class DiceServiceTest {
 
     @Test
     void newGame_shouldResetGameState() {
-        GameState gameState = diceService.newGame();
+        GameState gameState = diceService.newGame(RollMode.SINGLE_ROLL);
 
         assertEquals(new ArrayList<>(), gameState.getCurrentRoll());
         assertEquals(GamePhase.ROLL, gameState.getGamePhase());
         assertEquals(EnumSet.allOf(Category.class), gameState.getAvailableCategories());
         assertEquals(new ArrayList<>(), gameState.getRollHistory());
+        assertEquals(0, gameState.getRollNumberInTurn());
+        assertEquals(RollMode.SINGLE_ROLL, gameState.getRollMode());
         assertNull(gameState.getTotalScore());
         assertNull(gameState.getScore());
     }
 
     @Test
     void rollDice_shouldGenerateNewRoll_newGame() {
-        GameState gameState = diceService.rollDice(null);
+        GameState gameState = diceService.newGameAndRollDice(RollMode.SINGLE_ROLL);
 
         assertEquals(5, gameState.getCurrentRoll().size());
         assertTrue(gameState.getCurrentRoll().stream()
@@ -55,24 +57,38 @@ public class DiceServiceTest {
         assertEquals(GamePhase.CHOICE, gameState.getGamePhase());
         assertEquals(EnumSet.allOf(Category.class), gameState.getAvailableCategories());
         assertEquals(new ArrayList<>(), gameState.getRollHistory());
+        assertEquals(1, gameState.getRollNumberInTurn());
+        assertEquals(RollMode.SINGLE_ROLL, gameState.getRollMode());
         assertNull(gameState.getTotalScore());
         assertNull(gameState.getScore());
     }
 
     @Test
-    void rollDice_shouldGenerateNewRoll() {
-        GameState gameState = diceService.rollDice(gameIds.get("gameState_01.json"));
+    void rollDice_shouldGenerateNewRoll_existingGame() {
+        List<Boolean> diceToRoll = List.of(true, true, true, true, true);
+        GameState gameState = diceService.rollDice(gameIds.get("gameState_01.json"), diceToRoll);
 
         assertEquals(5, gameState.getCurrentRoll().size());
         assertTrue(gameState.getCurrentRoll().stream()
                 .allMatch(value -> value >= 1 && value <= 6));
         assertEquals(GamePhase.CHOICE, gameState.getGamePhase());
+        assertEquals(2, gameState.getRollNumberInTurn());
+    }
+
+    @Test
+    void rollDice_shouldGenerateNewRoll_rollOnlySelectedDice() {
+        List<Boolean> diceToRoll = List.of(false, false, true, false, false);
+        GameState gameState = diceService.rollDice(gameIds.get("gameState_01.json"), diceToRoll);
+
+        assertEquals(3, gameState.getCurrentRoll().get(0));
+        assertEquals(1, gameState.getCurrentRoll().get(1));
+        assertEquals(5, gameState.getCurrentRoll().get(3));
+        assertEquals(5, gameState.getCurrentRoll().get(4));
     }
 
     @Test
     void scoreCategory_shouldUpdateGameState() {
-        GameState gameState = diceService.scoreCategory(
-                UUID.fromString("90a7d758-f9fb-4385-9da4-178ad6d3f490"), Category.LARGE_STRAIGHT);
+        GameState gameState = diceService.scoreCategory(gameIds.get("gameState_02.json"), Category.LARGE_STRAIGHT);
 
         assertFalse(gameState.getAvailableCategories().contains(Category.LARGE_STRAIGHT));
         assertEquals(40, gameState.getScore());
@@ -84,12 +100,12 @@ public class DiceServiceTest {
         assertEquals(List.of(5, 1, 3, 2, 4), lastEntry.diceValues());
         assertEquals(Category.LARGE_STRAIGHT, lastEntry.category());
         assertEquals(40, lastEntry.score());
+        assertEquals(0, gameState.getRollNumberInTurn());
     }
 
     @Test
     void scoreCategory_shouldUpdateGameStateToFinished() {
-        GameState gameState = diceService.scoreCategory(
-                UUID.fromString("210ed747-1519-495a-9c49-09ed1c9437b4"), Category.SIXES);
+        GameState gameState = diceService.scoreCategory(gameIds.get("gameState_03.json"), Category.SIXES);
 
         assertTrue(gameState.getAvailableCategories().isEmpty());
         assertEquals(6, gameState.getScore());
@@ -105,7 +121,7 @@ public class DiceServiceTest {
 
     @Test
     void scoreCategory_shouldCalculateOptimalScore() {
-        GameState gameState = diceService.optimalScore(UUID.fromString("b47e259d-7780-4785-be41-1fe6a9bfc667"));
+        GameState gameState = diceService.optimalScore(gameIds.get("gameState_04.json"));
 
         assertTrue(gameState.getAvailableCategories().isEmpty());
         assertEquals(6, gameState.getScore());
@@ -119,7 +135,7 @@ public class DiceServiceTest {
 
     @Test
     void scoreCategory_shouldInitManualGame() {
-        GameState gameState = diceService.initManualGame(UUID.fromString("b47e259d-7780-4785-be41-1fe6a9bfc667"));
+        GameState gameState = diceService.initManualGame(gameIds.get("gameState_04.json"));
 
         assertTrue(gameState.getAvailableCategories().isEmpty());
         assertEquals(GamePhase.FINISHED, gameState.getGamePhase());
@@ -132,7 +148,7 @@ public class DiceServiceTest {
     @Test
     void scoreCategory_shouldAssignManualGameStateEntry() {
         ManualChoice choice = new ManualChoice(11, Category.CHANCE, ChoiceAction.ASSIGN);
-        GameState gameState = diceService.manualScore(UUID.fromString("c89592fb-5f4e-40cd-a663-92657430e4a3"), choice);
+        GameState gameState = diceService.manualScore(gameIds.get("gameState_05.json"), choice);
 
         assertTrue(gameState.getAvailableCategories().isEmpty());
         assertEquals(GamePhase.FINISHED, gameState.getGamePhase());
@@ -146,7 +162,7 @@ public class DiceServiceTest {
     @Test
     void scoreCategory_shouldClearManualGameStateEntry() {
         ManualChoice choice = new ManualChoice(12, Category.SIXES, ChoiceAction.CLEAR);
-        GameState gameState = diceService.manualScore(UUID.fromString("c89592fb-5f4e-40cd-a663-92657430e4a3"), choice);
+        GameState gameState = diceService.manualScore(gameIds.get("gameState_05.json"), choice);
 
         assertTrue(gameState.getAvailableCategories().isEmpty());
         assertEquals(GamePhase.FINISHED, gameState.getGamePhase());

@@ -2,6 +2,7 @@ package org.games.diceapp.repository;
 
 import org.games.diceapp.exception.GameNotFoundException;
 import org.games.diceapp.model.GameState;
+import org.games.diceapp.model.RollMode;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -15,8 +16,8 @@ public class GameStateStore {
 
     private final Map<UUID, GameState> games = new ConcurrentHashMap<>();
 
-    public GameState createNewGame() {
-        GameState gameState = new GameState();
+    public GameState createNewGame(RollMode rollMode) {
+        GameState gameState = new GameState(rollMode);
         games.put(gameState.getId(), gameState);
         cleanup();
         return gameState;

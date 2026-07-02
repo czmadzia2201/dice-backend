@@ -3,10 +3,12 @@ package org.games.diceapp.controller;
 import org.games.diceapp.model.Category;
 import org.games.diceapp.model.GameState;
 import org.games.diceapp.model.ManualChoice;
+import org.games.diceapp.model.RollMode;
 import org.games.diceapp.service.DiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -17,13 +19,13 @@ public class DiceController {
     private DiceService diceService;
 
     @PostMapping("/{id}/roll")
-    public GameState rollDice(@PathVariable UUID id) {
-        return diceService.rollDice(id);
+    public GameState rollDice(@PathVariable UUID id, @RequestBody List<Boolean> diceToRoll) {
+        return diceService.rollDice(id, diceToRoll);
     }
 
     @PostMapping("/roll")
-    public GameState rollDice() {
-        return diceService.rollDice(null);
+    public GameState newGameAndRollDice(@RequestBody RollMode rollMode) {
+        return diceService.newGameAndRollDice(rollMode);
     }
 
     @PostMapping("/{id}/score")
@@ -32,8 +34,8 @@ public class DiceController {
     }
 
     @PostMapping("/new-game")
-    public GameState newGame() {
-        return diceService.newGame();
+    public GameState newGame(@RequestBody RollMode rollMode) {
+        return diceService.newGame(rollMode);
     }
 
     @PostMapping("/{id}/optimal")

@@ -8,6 +8,8 @@
     5,
     1
   ],
+  "rollNumberInTurn": 1,
+  "rollMode": "THREE_ROLLS",
   "availableCategories": [],
   "manualAvailableCategories": [],
   "score": 6,

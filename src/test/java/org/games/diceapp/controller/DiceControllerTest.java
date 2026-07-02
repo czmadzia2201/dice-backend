@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.UUID;
 
 import static java.lang.String.format;
@@ -36,11 +37,14 @@ class DiceControllerTest {
     @Test
     void shouldReturnGameState_rollDiceEndpoint() throws Exception {
         GameState gameState = new GameState();
+        List<Boolean> diceToRoll = List.of(true, true, true, true, true);
 
         UUID gameId = gameState.getId();
-        when(diceService.rollDice(gameId)).thenReturn(gameState);
+        when(diceService.rollDice(gameId, diceToRoll)).thenReturn(gameState);
 
-        mockMvc.perform(post(format("/dice/%s/roll", gameId)))
+        mockMvc.perform(post(format("/dice/%s/roll", gameId))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(diceToRoll)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(gameId.toString()));
 
@@ -50,9 +54,11 @@ class DiceControllerTest {
     void shouldReturnGameState_rollDiceEndpoint_noGameId() throws Exception {
         GameState gameState = new GameState();
 
-        when(diceService.rollDice(null)).thenReturn(gameState);
+        when(diceService.newGameAndRollDice(RollMode.SINGLE_ROLL)).thenReturn(gameState);
 
-        mockMvc.perform(post("/dice/roll"))
+        mockMvc.perform(post("/dice/roll")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(RollMode.SINGLE_ROLL)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNotEmpty());
     }
@@ -60,9 +66,13 @@ class DiceControllerTest {
     @Test
     void shouldReturnNotFoundStatus_gameIdNotFound() throws Exception{
         UUID gameId = UUID.randomUUID();
-        when(diceService.rollDice(gameId)).thenThrow(new GameNotFoundException(gameId));
+        List<Boolean> diceToRoll = List.of(true, true, true, true, true);
 
-        mockMvc.perform(post(format("/dice/%s/roll", gameId)))
+        when(diceService.rollDice(gameId, diceToRoll)).thenThrow(new GameNotFoundException(gameId));
+
+        mockMvc.perform(post(format("/dice/%s/roll", gameId))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(diceToRoll)))
                 .andExpect(status().isNotFound())
                 .andExpect(result -> {
                     assertNotNull(result.getResolvedException());
@@ -76,9 +86,11 @@ class DiceControllerTest {
     void shouldReturnGameState_newGameEndpoint() throws Exception {
         GameState gameState = new GameState();
 
-        when(diceService.newGame()).thenReturn(gameState);
+        when(diceService.newGame(RollMode.THREE_ROLLS)).thenReturn(gameState);
 
-        mockMvc.perform(post("/dice/new-game"))
+        mockMvc.perform(post("/dice/new-game")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(RollMode.THREE_ROLLS)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNotEmpty());
     }

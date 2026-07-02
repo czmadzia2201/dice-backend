@@ -8,6 +8,8 @@
     5,
     5
   ],
+  "rollNumberInTurn": 1,
+  "rollMode": "THREE_ROLLS",
   "availableCategories": [
     "TWOS",
     "THREES",

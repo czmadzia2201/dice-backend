@@ -25,73 +25,9 @@ public class DiceIntegrationTest {
     private GameStateStore gameStateStore;
 
     @Test
-    public void shouldRollDiceForExistingGame() {
-        // GIVEN
-        ResponseEntity<GameState> newGameResponse = restTemplate.postForEntity("/dice/new-game", null, GameState.class);
-        assertThat(newGameResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        UUID gameId = newGameResponse.getBody().getId();
-
-        // WHEN
-        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/" + gameId + "/roll", null, GameState.class);
-
-        // THEN
-        assertThat(rollResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        GameState gameState = rollResponse.getBody();
-        assertThat(gameState).isNotNull();
-        assertThat(gameState.getId()).isEqualTo(gameId);
-        assertThat(gameState.getCurrentRoll()).isNotEmpty();
-        assertThat(gameState.getCurrentRoll()).hasSize(5);
-    }
-
-    @Test
-    public void shouldReturnNotFoundStatusOnGameIdNotFound() {
-        // GIVEN
-        UUID gameId = UUID.randomUUID();
-
-        // WHEN
-        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/" + gameId + "/roll", null, GameState.class);
-
-        // THEN
-        assertThat(rollResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        System.out.println(rollResponse.getBody());
-    }
-
-    @Test
-    public void shouldCreateNewGameWhenRollingWithoutId() {
-        // WHEN
-        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/roll", null, GameState.class);
-
-        // THEN
-        assertThat(rollResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        GameState gameState = rollResponse.getBody();
-        assertThat(gameState).isNotNull();
-        assertThat(gameState.getId()).isNotNull();
-        assertThat(gameState.getCurrentRoll()).hasSize(5);
-    }
-
-    @Test
-    public void shouldScoreCategory() {
-        // GIVEN
-        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/roll", null, GameState.class);
-        GameState initialState = rollResponse.getBody();
-        UUID gameId = initialState.getId();
-
-        // WHEN
-        ResponseEntity<GameState> scoreResponse = restTemplate.postForEntity("/dice/" + gameId + "/score", org.games.diceapp.model.Category.ONES, GameState.class);
-
-        // THEN
-        assertThat(scoreResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        GameState updatedState = scoreResponse.getBody();
-        assertThat(updatedState).isNotNull();
-        assertThat(updatedState.getAvailableCategories()).doesNotContain(org.games.diceapp.model.Category.ONES);
-        assertThat(updatedState.getScore()).isNotNull();
-        assertThat(updatedState.getRollHistory()).hasSize(1);
-    }
-
-    @Test
     public void shouldCreateNewGame() {
         // WHEN
-        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/new-game", null, GameState.class);
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/new-game", RollMode.SINGLE_ROLL, GameState.class);
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -100,6 +36,108 @@ public class DiceIntegrationTest {
         assertThat(gameState.getId()).isNotNull();
         assertThat(gameState.getAvailableCategories()).hasSize(13); // Assuming all 13 categories are available
         assertThat(gameState.getRollHistory()).isEmpty();
+        assertThat(gameState.getRollMode()).isEqualTo(RollMode.SINGLE_ROLL);
+        assertThat(gameState.getRollNumberInTurn()).isEqualTo(0);
+    }
+
+    @Test
+    public void shouldCreateNewGameWhenRollingWithoutId() {
+        // GIVEN
+        RollMode rollMode = RollMode.SINGLE_ROLL;
+
+        // WHEN
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/roll", rollMode, GameState.class);
+
+        // THEN
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        GameState gameState = response.getBody();
+        assertThat(gameState).isNotNull();
+        assertThat(gameState.getId()).isNotNull();
+        assertThat(gameState.getCurrentRoll()).hasSize(5);
+        assertThat(gameState.getRollMode()).isEqualTo(RollMode.SINGLE_ROLL);
+        assertThat(gameState.getRollNumberInTurn()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldRollDiceForExistingGame() {
+        // GIVEN
+        ResponseEntity<GameState> newGameResponse = restTemplate.postForEntity("/dice/new-game", RollMode.SINGLE_ROLL, GameState.class);
+        assertThat(newGameResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        UUID gameId = newGameResponse.getBody().getId();
+        List<Boolean> diceToRoll = List.of(true, true, true, true, true);
+
+        // WHEN
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+
+        // THEN
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        GameState gameState = response.getBody();
+        assertThat(gameState).isNotNull();
+        assertThat(gameState.getId()).isEqualTo(gameId);
+        assertThat(gameState.getCurrentRoll()).isNotEmpty();
+        assertThat(gameState.getCurrentRoll()).hasSize(5);
+        assertThat(gameState.getRollMode()).isEqualTo(RollMode.SINGLE_ROLL);
+        assertThat(gameState.getRollNumberInTurn()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldRollDiceForExistingGame_rollSelectedDice() throws Exception {
+        // GIVEN
+        GameState preparedState = TestUtils.loadGameStateFromJson("gameState_01.json");
+        UUID gameId = preparedState.getId();
+        gameStateStore.save(preparedState);
+        List<Boolean> diceToRoll = List.of(false, false, false, true, false);
+
+        // WHEN
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+
+        // THEN
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        GameState gameState = response.getBody();
+        assertThat(gameState).isNotNull();
+        assertThat(gameState.getCurrentRoll().get(0)).isEqualTo(3);
+        assertThat(gameState.getCurrentRoll().get(1)).isEqualTo(1);
+        assertThat(gameState.getCurrentRoll().get(2)).isEqualTo(3);
+        assertThat(gameState.getCurrentRoll().get(4)).isEqualTo(5);
+        assertThat(gameState.getRollMode()).isEqualTo(RollMode.THREE_ROLLS);
+        assertThat(gameState.getRollNumberInTurn()).isEqualTo(2);
+    }
+
+    @Test
+    public void shouldReturnNotFoundStatusOnGameIdNotFound() {
+        // GIVEN
+        UUID gameId = UUID.randomUUID();
+        List<Boolean> diceToRoll = List.of(true, true, true, true, true);
+
+        // WHEN
+        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+
+        // THEN
+        assertThat(rollResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    public void shouldScoreCategory() {
+        // GIVEN
+        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/roll", RollMode.SINGLE_ROLL, GameState.class);
+        GameState initialState = rollResponse.getBody();
+        UUID gameId = initialState.getId();
+
+        List<Boolean> diceToRoll = List.of(true, true, true, true, true);
+        restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+
+        // WHEN
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/" + gameId + "/score", Category.ONES, GameState.class);
+
+        // THEN
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        GameState gameState = response.getBody();
+        assertThat(gameState).isNotNull();
+        assertThat(gameState.getAvailableCategories()).doesNotContain(Category.ONES);
+        assertThat(gameState.getScore()).isNotNull();
+        assertThat(gameState.getTotalScore()).isNotNull();
+        assertThat(gameState.getRollHistory()).hasSize(1);
+        assertThat(gameState.getRollNumberInTurn()).isEqualTo(0);
     }
 
     @Test
@@ -114,10 +152,11 @@ public class DiceIntegrationTest {
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        GameState result = response.getBody();
-        assertThat(result.getOptimalResult()).isNotNull();
-        assertThat(result.getOptimalResult().getTotalScore()).isEqualTo(148);
-        assertThat(result.getOptimalResult().getRollHistory()).hasSize(13);
+        GameState gameState = response.getBody();
+        assertThat(gameState).isNotNull();
+        assertThat(gameState.getOptimalResult()).isNotNull();
+        assertThat(gameState.getOptimalResult().getTotalScore()).isEqualTo(148);
+        assertThat(gameState.getOptimalResult().getRollHistory()).hasSize(13);
     }
 
     @Test
@@ -132,10 +171,11 @@ public class DiceIntegrationTest {
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        GameState result = response.getBody();
-        assertThat(result.getManualResult()).isNotNull();
-        assertThat(result.getManualResult().getTotalScore()).isEqualTo(0);
-        assertThat(result.getManualResult().getRollHistory()).hasSize(13);
+        GameState gameState = response.getBody();
+        assertThat(gameState).isNotNull();
+        assertThat(gameState.getManualResult()).isNotNull();
+        assertThat(gameState.getManualResult().getTotalScore()).isEqualTo(0);
+        assertThat(gameState.getManualResult().getRollHistory()).hasSize(13);
     }
 
     @Test
@@ -151,12 +191,13 @@ public class DiceIntegrationTest {
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        GameState result = response.getBody();
-        assertThat(result.getManualResult()).isNotNull();
+        GameState gameState = response.getBody();
+        assertThat(gameState).isNotNull();
+        assertThat(gameState.getManualResult()).isNotNull();
         // The initial manual score in the JSON file is 67, after adding ONES (1 p) should be 68
-        assertThat(result.getManualResult().getTotalScore()).isEqualTo(68);
-        assertThat(result.getManualAvailableCategories()).doesNotContain(Category.ONES);
-        assertThat(result.getManualResult().getRollHistory().get(0)).isEqualTo(
+        assertThat(gameState.getManualResult().getTotalScore()).isEqualTo(68);
+        assertThat(gameState.getManualAvailableCategories()).doesNotContain(Category.ONES);
+        assertThat(gameState.getManualResult().getRollHistory().get(0)).isEqualTo(
                 new RollEntry(1, List.of(4, 1, 2, 4, 2), Category.ONES, 1));
     }
 
@@ -173,12 +214,13 @@ public class DiceIntegrationTest {
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        GameState result = response.getBody();
-        assertThat(result.getManualResult()).isNotNull();
+        GameState gameState = response.getBody();
+        assertThat(gameState).isNotNull();
+        assertThat(gameState.getManualResult()).isNotNull();
         // The initial manual score in the JSON file is 67, after subtracting SIXES (12 p) should be 55
-        assertThat(result.getManualResult().getTotalScore()).isEqualTo(55);
-        assertThat(result.getManualAvailableCategories()).contains(Category.SIXES);
-        assertThat(result.getManualResult().getRollHistory().get(11)).isEqualTo(
+        assertThat(gameState.getManualResult().getTotalScore()).isEqualTo(55);
+        assertThat(gameState.getManualAvailableCategories()).contains(Category.SIXES);
+        assertThat(gameState.getManualResult().getRollHistory().get(11)).isEqualTo(
                 new RollEntry(12, List.of(), null, null));
     }
 

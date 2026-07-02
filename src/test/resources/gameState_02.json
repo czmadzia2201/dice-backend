@@ -8,6 +8,8 @@
     2,
     4
   ],
+  "rollNumberInTurn": 1,
+  "rollMode": "THREE_ROLLS",
   "availableCategories": [
     "SIXES",
     "THREE_OF_A_KIND",

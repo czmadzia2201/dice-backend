@@ -16,16 +16,24 @@ public class DiceService {
 
     private final OptimalResultService optimalResultService;
 
-    public GameState newGame() {
-        return gameStateStore.createNewGame();
+    public GameState newGame(RollMode rollMode) {
+        return gameStateStore.createNewGame(rollMode);
     }
 
-    public GameState rollDice(UUID gameId) {
-        GameState gameState = gameId == null ?
-                gameStateStore.createNewGame() :
-                gameStateStore.get(gameId);
-        gameState.setCurrentRoll(generateDiceValues());
+    public GameState newGameAndRollDice(RollMode rollMode) {
+        GameState gameState = gameStateStore.createNewGame(rollMode);
+        return setGameStateValuesOnRoll(gameState, List.of(true, true, true, true, true));
+    }
+
+    public GameState rollDice(UUID gameId, List<Boolean> diceToRoll) {
+        GameState gameState = gameStateStore.get(gameId);
+        return setGameStateValuesOnRoll(gameState, diceToRoll);
+    }
+
+    private GameState setGameStateValuesOnRoll(GameState gameState, List<Boolean> diceToRoll) {
+        gameState.setCurrentRoll(generateDiceValues(diceToRoll, gameState));
         gameState.setGamePhase(GamePhase.CHOICE);
+        gameState.setRollNumberInTurn(rotateRollNumberInTurn(gameState));
         return gameState;
     }
 
@@ -40,6 +48,7 @@ public class DiceService {
         RollEntry rollEntry = new RollEntry(gameState.getRollHistory().size() + 1,
                             gameState.getCurrentRoll().stream().toList(), category, score);
         gameState.getRollHistory().add(rollEntry);
+        gameState.setRollNumberInTurn(0);
         return gameState;
     }
 
@@ -62,13 +71,26 @@ public class DiceService {
         return gameState;
     }
 
-    private List<Integer> generateDiceValues() {
+    private List<Integer> generateDiceValues(List<Boolean> diceToRoll, GameState gameState) {
         List<Integer> result = new ArrayList<>();
         Random random = new Random();
         for (int i = 0; i < 5; i++) {
-            result.add(random.nextInt(7 - 1) + 1);
+            if (diceToRoll.get(i)) {
+                result.add(random.nextInt(7 - 1) + 1);
+            } else {
+                result.add(gameState.getCurrentRoll().get(i));
+            }
         }
         return result;
+    }
+
+    private int rotateRollNumberInTurn(GameState gameState) {
+        if (gameState.getRollMode() == RollMode.SINGLE_ROLL) {
+            return 1;
+        } else {
+            return gameState.getRollNumberInTurn() < 3 ?
+                    gameState.getRollNumberInTurn() + 1 : gameState.getRollNumberInTurn();
+        }
     }
 
     private ResultSummary generateOptimalResult(GameState gameState) {

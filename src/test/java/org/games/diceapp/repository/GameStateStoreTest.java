@@ -2,6 +2,7 @@ package org.games.diceapp.repository;
 
 import org.games.diceapp.exception.GameNotFoundException;
 import org.games.diceapp.model.GameState;
+import org.games.diceapp.model.RollMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +33,7 @@ public class GameStateStoreTest {
 
     @Test
     public void shouldCreateNewGameAndRemoveOldGames() {
-        GameState gameState = gameStateStore.createNewGame();
+        GameState gameState = gameStateStore.createNewGame(RollMode.SINGLE_ROLL);
         assertThrows(GameNotFoundException.class, () -> gameStateStore.get(gameId1));
         assertThrows(GameNotFoundException.class, () -> gameStateStore.get(gameId2));
         assertNotNull(gameStateStore.get(gameId3));
