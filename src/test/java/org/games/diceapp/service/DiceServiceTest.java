@@ -6,22 +6,28 @@ import org.games.diceapp.util.DiceUtils;
 import org.games.diceapp.util.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.*;
+import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DiceServiceTest {
+class DiceServiceTest {
 
-    @Autowired
     private DiceService diceService;
+
+    private GameStateStore gameStateStore;
 
     private final Map<String, UUID> gameIds = new HashMap<>();
 
     @BeforeEach
     void setUp() throws Exception {
-        GameStateStore gameStateStore = new GameStateStore();
+        gameStateStore = new GameStateStore();
         List<String> inputJsons = List.of("gameState_01.json", "gameState_02.json",
                 "gameState_03.json", "gameState_04.json", "gameState_05.json");
         for (String inputJson : inputJsons) {
@@ -65,7 +71,7 @@ public class DiceServiceTest {
 
     @Test
     void rollDice_shouldGenerateNewRoll_existingGame() {
-        List<Boolean> diceToRoll = List.of(true, true, true, true, true);
+        List<Boolean> diceToRoll = Arrays.asList(true, true, true, true, true);
         GameState gameState = diceService.rollDice(gameIds.get("gameState_01.json"), diceToRoll);
 
         assertEquals(5, gameState.getCurrentRoll().size());
@@ -77,13 +83,71 @@ public class DiceServiceTest {
 
     @Test
     void rollDice_shouldGenerateNewRoll_rollOnlySelectedDice() {
-        List<Boolean> diceToRoll = List.of(false, false, true, false, false);
+        List<Boolean> diceToRoll = Arrays.asList(false, false, true, false, false);
         GameState gameState = diceService.rollDice(gameIds.get("gameState_01.json"), diceToRoll);
 
         assertEquals(3, gameState.getCurrentRoll().get(0));
         assertEquals(1, gameState.getCurrentRoll().get(1));
         assertEquals(5, gameState.getCurrentRoll().get(3));
         assertEquals(5, gameState.getCurrentRoll().get(4));
+    }
+
+    @Test
+    void rollDice_shouldThrowException_nullElement() {
+        List<Boolean> diceToRoll = Arrays.asList(true, true, null, true, true);
+        assertThatThrownBy(() -> diceService.rollDice(gameIds.get("gameState_01.json"), diceToRoll))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("DiceToRoll must not contain null elements.");
+    }
+
+    @Test
+    void rollDice_shouldThrowException_inputWrongSize() {
+        List<Boolean> diceToRoll = Arrays.asList(true, true, true, true);
+        assertThatThrownBy(() -> diceService.rollDice(gameIds.get("gameState_01.json"), diceToRoll))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("DiceToRoll must contain exactly 5 values.");
+    }
+
+    @Test
+    void rollDice_shouldThrowException_falseElementsInFirstRoll() {
+        List<Boolean> diceToRoll = Arrays.asList(true, true, true, false, true);
+        GameState gameState = createGameState(GamePhase.ROLL, RollMode.SINGLE_ROLL, 0);
+        assertThatThrownBy(() -> diceService.rollDice(gameState.getId(), diceToRoll))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("All dice must be rolled on the first roll.");
+    }
+
+    @ParameterizedTest
+    @MethodSource("rollDiceNotAllowed")
+    void rollDice_shouldThrowException_wrongGameState(GamePhase gamePhase, RollMode rollMode, int rollNumberInTurn) {
+        List<Boolean> diceToRoll = Arrays.asList(true, true, true, true, true);
+        GameState gameState = createGameState(gamePhase, rollMode, rollNumberInTurn);
+        assertThatThrownBy(() -> diceService.rollDice(gameState.getId(), diceToRoll))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Action not allowed at this state of the game.");
+    }
+
+    private static Stream<Arguments> rollDiceNotAllowed() {
+        return Stream.of(
+                Arguments.of(GamePhase.FINISHED, RollMode.SINGLE_ROLL, 1),
+                Arguments.of(GamePhase.CHOICE, RollMode.SINGLE_ROLL, 1),
+                Arguments.of(GamePhase.CHOICE, RollMode.THREE_ROLLS, 3)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("rollDiceAllowed")
+    void rollDice_shouldNotThrowException_correctGameState(GamePhase gamePhase, RollMode rollMode, int rollNumberInTurn) {
+        List<Boolean> diceToRoll = Arrays.asList(true, true, true, true, true);
+        GameState gameState = createGameState(gamePhase, rollMode, rollNumberInTurn);
+        assertThatNoException().isThrownBy(() -> diceService.rollDice(gameState.getId(), diceToRoll));
+    }
+
+    private static Stream<Arguments> rollDiceAllowed() {
+        return Stream.of(
+                Arguments.of(GamePhase.ROLL, RollMode.SINGLE_ROLL, 0),
+                Arguments.of(GamePhase.CHOICE, RollMode.THREE_ROLLS, 2)
+        );
     }
 
     @Test
@@ -119,8 +183,24 @@ public class DiceServiceTest {
         assertEquals(6, lastEntry.score());
     }
 
+    @ParameterizedTest
+    @MethodSource("scoreCategoryNotAllowed")
+    void scoreCategory_shouldThrowException_wrongGameState(GamePhase gamePhase, RollMode rollMode, int rollNumberInTurn) {
+        GameState gameState = createGameState(gamePhase, rollMode, rollNumberInTurn);
+        assertThatThrownBy(() -> diceService.scoreCategory(gameState.getId(), Category.LARGE_STRAIGHT))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Action not allowed at this state of the game.");
+    }
+
+    private static Stream<Arguments> scoreCategoryNotAllowed() {
+        return Stream.of(
+                Arguments.of(GamePhase.FINISHED, RollMode.SINGLE_ROLL, 1),
+                Arguments.of(GamePhase.ROLL, RollMode.SINGLE_ROLL, 0)
+        );
+    }
+
     @Test
-    void scoreCategory_shouldCalculateOptimalScore() {
+    void optimalScore_shouldCalculateOptimalScore() {
         GameState gameState = diceService.optimalScore(gameIds.get("gameState_04.json"));
 
         assertTrue(gameState.getAvailableCategories().isEmpty());
@@ -134,7 +214,14 @@ public class DiceServiceTest {
     }
 
     @Test
-    void scoreCategory_shouldInitManualGame() {
+    void optimalScore_shouldThrowException_wrongGameState() {
+        assertThatThrownBy(() -> diceService.optimalScore(gameIds.get("gameState_01.json")))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Action not allowed at this state of the game.");
+    }
+
+    @Test
+    void initManualScore_shouldInitManualGame() {
         GameState gameState = diceService.initManualGame(gameIds.get("gameState_04.json"));
 
         assertTrue(gameState.getAvailableCategories().isEmpty());
@@ -146,7 +233,14 @@ public class DiceServiceTest {
     }
 
     @Test
-    void scoreCategory_shouldAssignManualGameStateEntry() {
+    void initManualScore_shouldThrowException_wrongGameState() {
+        assertThatThrownBy(() -> diceService.initManualGame(gameIds.get("gameState_01.json")))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Action not allowed at this state of the game.");
+    }
+
+    @Test
+    void manualScore_shouldAssignManualGameStateEntry() {
         ManualChoice choice = new ManualChoice(11, Category.CHANCE, ChoiceAction.ASSIGN);
         GameState gameState = diceService.manualScore(gameIds.get("gameState_05.json"), choice);
 
@@ -160,7 +254,7 @@ public class DiceServiceTest {
     }
 
     @Test
-    void scoreCategory_shouldClearManualGameStateEntry() {
+    void manualScore_shouldClearManualGameStateEntry() {
         ManualChoice choice = new ManualChoice(12, Category.SIXES, ChoiceAction.CLEAR);
         GameState gameState = diceService.manualScore(gameIds.get("gameState_05.json"), choice);
 
@@ -173,4 +267,21 @@ public class DiceServiceTest {
                 gameState.getManualResult().getRollHistory().get(11));
         assertEquals(13, gameState.getManualResult().getRollHistory().size());
     }
+
+    @Test
+    void manualScore_shouldThrowException_wrongGameState() {
+        ManualChoice choice = new ManualChoice(12, Category.SIXES, ChoiceAction.CLEAR);
+        assertThatThrownBy(() -> diceService.manualScore(gameIds.get("gameState_01.json"), choice))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Action not allowed at this state of the game.");
+    }
+
+    private GameState createGameState(GamePhase gamePhase, RollMode rollMode, int rollNumberInTurn) {
+        GameState gameState = new GameState(rollMode);
+        gameState.setGamePhase(gamePhase);
+        gameState.setRollNumberInTurn(rollNumberInTurn);
+        gameStateStore.save(gameState);
+        return gameState;
+    }
+
 }

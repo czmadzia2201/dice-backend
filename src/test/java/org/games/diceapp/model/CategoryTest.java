@@ -6,7 +6,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CategoryTest {
+class CategoryTest {
 
     @Test
     void calculateScoreForNumberCategories() {

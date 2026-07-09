@@ -1,17 +1,20 @@
 package org.games.diceapp.model;
 
+import org.games.diceapp.exception.CategoryNotAvailableException;
 import org.games.diceapp.util.DiceUtils;
+import org.games.diceapp.util.TestUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
 import java.util.List;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ChoiceActionTest {
+class ChoiceActionTest {
 
     @Test
-    void testAssignAction() {
+    void assignAction_shouldUpdateManualResult() {
         // GIVEN
         GameState gameState = new GameState();
         gameState.setRollHistory(List.of(new RollEntry(1, List.of(6, 3, 3, 6, 6), Category.THREE_OF_A_KIND, 24)));
@@ -30,7 +33,31 @@ public class ChoiceActionTest {
     }
 
     @Test
-    void testClearAction() {
+    void assignAction_assignedRollEntry_shouldThrowException() throws Exception {
+        // GIVEN
+        GameState gameState = TestUtils.loadGameStateFromJson("gameState_05.json");
+        ManualChoice choice = new ManualChoice(3, Category.THREES, ChoiceAction.ASSIGN);
+
+        // WHEN-THEN
+        assertThatThrownBy(() -> choice.action().updateGameState(gameState, choice))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("This roll entry is already assigned.");
+    }
+
+    @Test
+    void assignAction_unavailableCategory_shouldThrowException() throws Exception {
+        // GIVEN
+        GameState gameState = TestUtils.loadGameStateFromJson("gameState_05.json");
+        ManualChoice choice = new ManualChoice(4, Category.SIXES, ChoiceAction.ASSIGN);
+
+        // WHEN-THEN
+        assertThatThrownBy(() -> choice.action().updateGameState(gameState, choice))
+                .isInstanceOf(CategoryNotAvailableException.class)
+                .hasMessage(String.format("Category SIXES is not available for game %s", gameState.getId()));
+    }
+
+    @Test
+    void clearAction_shouldUpdateManualResult() {
         // GIVEN
         GameState gameState = new GameState();
         gameState.setManualResult(new ResultSummary(50, DiceUtils.generateEmptyManualHistory()));
@@ -47,5 +74,19 @@ public class ChoiceActionTest {
         assertEquals(new RollEntry(1, List.of(), null, null), gameState.getManualResult().getRollHistory().get(0));
         assertEquals(EnumSet.allOf(Category.class), gameState.getManualAvailableCategories());
     }
+
+    @Test
+    void clearAction_emptyRollEntry_shouldThrowException() throws Exception {
+        // GIVEN
+        GameState gameState = TestUtils.loadGameStateFromJson("gameState_05.json");
+        ManualChoice choice = new ManualChoice(4, Category.THREES, ChoiceAction.CLEAR);
+
+        // WHEN-THEN
+        assertThatThrownBy(() -> choice.action().updateGameState(gameState, choice))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("This roll entry is already empty.");
+    }
+
+
 
 }

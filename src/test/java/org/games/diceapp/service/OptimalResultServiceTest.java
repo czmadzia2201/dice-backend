@@ -10,13 +10,13 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class OptimalResultServiceTest {
+class OptimalResultServiceTest {
 
     private final OptimalResultService optimalResultService = new OptimalResultService();
 
     @ParameterizedTest
     @MethodSource("games")
-    public void shouldCalculateOptimalScore(List<List<Integer>> rollsInGame, int expectedScore) {
+    void shouldCalculateOptimalScore(List<List<Integer>> rollsInGame, int expectedScore) {
         ScoreState bestScore = optimalResultService.bestScore(rollsInGame);
         assertEquals(expectedScore, bestScore.getScore());
     }

@@ -1,6 +1,7 @@
 package org.games.diceapp.service;
 
 import lombok.RequiredArgsConstructor;
+import org.games.diceapp.exception.CategoryNotAvailableException;
 import org.games.diceapp.util.DiceUtils;
 import org.games.diceapp.model.*;
 import org.games.diceapp.repository.GameStateStore;
@@ -22,23 +23,28 @@ public class DiceService {
 
     public GameState newGameAndRollDice(RollMode rollMode) {
         GameState gameState = gameStateStore.createNewGame(rollMode);
-        return setGameStateValuesOnRoll(gameState, List.of(true, true, true, true, true));
+        return setGameStateValuesOnRoll(gameState, Arrays.asList(true, true, true, true, true));
     }
 
     public GameState rollDice(UUID gameId, List<Boolean> diceToRoll) {
         GameState gameState = gameStateStore.get(gameId);
+        checkOperation(canRoll(gameState));
         return setGameStateValuesOnRoll(gameState, diceToRoll);
     }
 
     private GameState setGameStateValuesOnRoll(GameState gameState, List<Boolean> diceToRoll) {
         gameState.setCurrentRoll(generateDiceValues(diceToRoll, gameState));
         gameState.setGamePhase(GamePhase.CHOICE);
-        gameState.setRollNumberInTurn(rotateRollNumberInTurn(gameState));
+        gameState.setRollNumberInTurn(nextRollNumberInTurn(gameState));
         return gameState;
     }
 
     public GameState scoreCategory(UUID gameId, Category category) {
         GameState gameState = gameStateStore.get(gameId);
+        checkOperation(canChoose(gameState));
+        if (!gameState.getAvailableCategories().contains(category)) {
+            throw new CategoryNotAvailableException(gameId, category);
+        }
         gameState.getAvailableCategories().remove(category);
         int score = category.calculateScore(gameState.getCurrentRoll());
         gameState.setScore(score);
@@ -54,12 +60,14 @@ public class DiceService {
 
     public GameState optimalScore(UUID gameId) {
         GameState gameState = gameStateStore.get(gameId);
+        checkOperation(canPlayExtraOptions(gameState));
         gameState.setOptimalResult(generateOptimalResult(gameState));
         return gameState;
     }
 
     public GameState initManualGame(UUID gameId) {
         GameState gameState = gameStateStore.get(gameId);
+        checkOperation(canPlayExtraOptions(gameState));
         gameState.setManualResult(new ResultSummary(0, DiceUtils.generateEmptyManualHistory()));
         gameState.setManualAvailableCategories(EnumSet.allOf(Category.class));
         return gameState;
@@ -67,11 +75,21 @@ public class DiceService {
 
     public GameState manualScore(UUID gameId, ManualChoice choice) {
         GameState gameState = gameStateStore.get(gameId);
+        checkOperation(canPlayExtraOptions(gameState));
         choice.action().updateGameState(gameState, choice);
         return gameState;
     }
 
     private List<Integer> generateDiceValues(List<Boolean> diceToRoll, GameState gameState) {
+        if (diceToRoll.size() != 5) {
+            throw new IllegalArgumentException("DiceToRoll must contain exactly 5 values.");
+        }
+        if (diceToRoll.contains(null)) {
+            throw new IllegalArgumentException("DiceToRoll must not contain null elements.");
+        }
+        if (gameState.getRollNumberInTurn() == 0 && diceToRoll.contains(false)) {
+            throw new IllegalArgumentException("All dice must be rolled on the first roll.");
+        }
         List<Integer> result = new ArrayList<>();
         Random random = new Random();
         for (int i = 0; i < 5; i++) {
@@ -84,7 +102,7 @@ public class DiceService {
         return result;
     }
 
-    private int rotateRollNumberInTurn(GameState gameState) {
+    private int nextRollNumberInTurn(GameState gameState) {
         if (gameState.getRollMode() == RollMode.SINGLE_ROLL) {
             return 1;
         } else {
@@ -111,6 +129,27 @@ public class DiceService {
                 .sorted(Comparator.comparing(RollEntry::rollNumber))
                 .toList();
         return new ResultSummary(optimalTotalScore, optimalHistory);
+    }
+
+    private void checkOperation(boolean actionCheck) {
+        if (!actionCheck) {
+            throw new IllegalStateException("Action not allowed at this state of the game.");
+        }
+    }
+
+    private boolean canRoll(GameState gameState) {
+        return gameState.getGamePhase() == GamePhase.ROLL ||
+                (gameState.getGamePhase() == GamePhase.CHOICE &&
+                        gameState.getRollMode() == RollMode.THREE_ROLLS &&
+                        gameState.getRollNumberInTurn() < 3);
+    }
+
+    private boolean canChoose(GameState gameState) {
+        return gameState.getGamePhase() == GamePhase.CHOICE;
+    }
+
+    private boolean canPlayExtraOptions(GameState gameState) {
+        return gameState.getGamePhase() == GamePhase.FINISHED;
     }
 
 }

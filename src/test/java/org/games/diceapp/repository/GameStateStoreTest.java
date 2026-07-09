@@ -14,7 +14,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class GameStateStoreTest {
+class GameStateStoreTest {
 
     private GameStateStore gameStateStore;
 
@@ -24,7 +24,7 @@ public class GameStateStoreTest {
     private final UUID gameId4 = UUID.fromString("c89592fb-5f4e-40cd-a663-92657430e4a3");
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         gameStateStore = new GameStateStore();
         gameStateStore.save(createGameState(gameId1, Duration.ofDays(2)));
         gameStateStore.save(createGameState(gameId2, Duration.ofDays(3)));
@@ -32,7 +32,7 @@ public class GameStateStoreTest {
     }
 
     @Test
-    public void shouldCreateNewGameAndRemoveOldGames() {
+    void shouldCreateNewGameAndRemoveOldGames() {
         GameState gameState = gameStateStore.createNewGame(RollMode.SINGLE_ROLL);
         assertThrows(GameNotFoundException.class, () -> gameStateStore.get(gameId1));
         assertThrows(GameNotFoundException.class, () -> gameStateStore.get(gameId2));
@@ -43,7 +43,7 @@ public class GameStateStoreTest {
     }
 
     @Test
-    public void shouldThrowExceptionForNonExistingGame() {
+    void shouldThrowExceptionForNonExistingGame() {
         assertThatThrownBy(() -> gameStateStore.get(gameId4))
                 .isInstanceOf(GameNotFoundException.class)
                 .hasMessage("Game not found: " + gameId4);

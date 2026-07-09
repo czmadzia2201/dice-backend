@@ -16,7 +16,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class DiceIntegrationTest {
+class DiceIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -25,7 +25,7 @@ public class DiceIntegrationTest {
     private GameStateStore gameStateStore;
 
     @Test
-    public void shouldCreateNewGame() {
+    void shouldCreateNewGame() {
         // WHEN
         ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/new-game", RollMode.SINGLE_ROLL, GameState.class);
 
@@ -41,12 +41,9 @@ public class DiceIntegrationTest {
     }
 
     @Test
-    public void shouldCreateNewGameWhenRollingWithoutId() {
-        // GIVEN
-        RollMode rollMode = RollMode.SINGLE_ROLL;
-
+    void shouldCreateNewGameWhenRollingWithoutId() {
         // WHEN
-        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/roll", rollMode, GameState.class);
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/roll", RollMode.SINGLE_ROLL, GameState.class);
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -59,7 +56,7 @@ public class DiceIntegrationTest {
     }
 
     @Test
-    public void shouldRollDiceForExistingGame() {
+    void shouldRollDiceForExistingGame() {
         // GIVEN
         ResponseEntity<GameState> newGameResponse = restTemplate.postForEntity("/dice/new-game", RollMode.SINGLE_ROLL, GameState.class);
         assertThat(newGameResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -81,7 +78,7 @@ public class DiceIntegrationTest {
     }
 
     @Test
-    public void shouldRollDiceForExistingGame_rollSelectedDice() throws Exception {
+    void shouldRollDiceForExistingGame_rollSelectedDice() throws Exception {
         // GIVEN
         GameState preparedState = TestUtils.loadGameStateFromJson("gameState_01.json");
         UUID gameId = preparedState.getId();
@@ -104,7 +101,50 @@ public class DiceIntegrationTest {
     }
 
     @Test
-    public void shouldReturnNotFoundStatusOnGameIdNotFound() {
+    void shouldAllowOneRollForSingleRollMode() {
+        // WHEN
+        List<Boolean> diceToRoll = List.of(true, true, true, true, true);
+        ResponseEntity<GameState> newGameResponse = restTemplate.postForEntity("/dice/new-game", RollMode.SINGLE_ROLL, GameState.class);
+
+        // THEN
+        UUID gameId = newGameResponse.getBody().getId();
+        assertThat(newGameResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        ResponseEntity<GameState> response1 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response1.getBody().getRollNumberInTurn()).isEqualTo(1);
+
+        ResponseEntity<String> response2 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, String.class);
+        assertThat(response2.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void shouldAllowThreeRollsForThreeRollsMode() {
+        // WHEN
+        List<Boolean> diceToRoll = List.of(true, true, true, true, true);
+        ResponseEntity<GameState> newGameResponse = restTemplate.postForEntity("/dice/new-game", RollMode.THREE_ROLLS, GameState.class);
+
+        // THEN
+        UUID gameId = newGameResponse.getBody().getId();
+
+        ResponseEntity<GameState> response1 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response1.getBody().getRollNumberInTurn()).isEqualTo(1);
+
+        ResponseEntity<GameState> response2 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        assertThat(response2.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response2.getBody().getRollNumberInTurn()).isEqualTo(2);
+
+        ResponseEntity<GameState> response3 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        assertThat(response3.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response3.getBody().getRollNumberInTurn()).isEqualTo(3);
+
+        ResponseEntity<String> response4 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, String.class);
+        assertThat(response4.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void shouldReturnNotFoundStatusOnGameIdNotFound() {
         // GIVEN
         UUID gameId = UUID.randomUUID();
         List<Boolean> diceToRoll = List.of(true, true, true, true, true);
@@ -117,9 +157,9 @@ public class DiceIntegrationTest {
     }
 
     @Test
-    public void shouldScoreCategory() {
+    void shouldScoreCategory() {
         // GIVEN
-        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/roll", RollMode.SINGLE_ROLL, GameState.class);
+        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/roll", RollMode.THREE_ROLLS, GameState.class);
         GameState initialState = rollResponse.getBody();
         UUID gameId = initialState.getId();
 
@@ -141,7 +181,7 @@ public class DiceIntegrationTest {
     }
 
     @Test
-    public void shouldCalculateOptimalScore() throws Exception {
+    void shouldCalculateOptimalScore() throws Exception {
         // GIVEN
         GameState preparedState = TestUtils.loadGameStateFromJson("gameState_04.json");
         UUID gameId = preparedState.getId();
@@ -160,7 +200,7 @@ public class DiceIntegrationTest {
     }
 
     @Test
-    public void shouldInitManualGame() throws Exception {
+    void shouldInitManualGame() throws Exception {
         // GIVEN
         GameState preparedState = TestUtils.loadGameStateFromJson("gameState_04.json");
         UUID gameId = preparedState.getId();
@@ -179,7 +219,7 @@ public class DiceIntegrationTest {
     }
 
     @Test
-    public void shouldAssignManualGameStateEntry() throws Exception {
+    void shouldAssignManualGameStateEntry() throws Exception {
         // GIVEN
         GameState preparedState = TestUtils.loadGameStateFromJson("gameState_05.json");
         UUID gameId = preparedState.getId();
@@ -202,7 +242,7 @@ public class DiceIntegrationTest {
     }
 
     @Test
-    public void shouldClearManualGameStateEntry() throws Exception {
+    void shouldClearManualGameStateEntry() throws Exception {
         // GIVEN
         GameState preparedState = TestUtils.loadGameStateFromJson("gameState_05.json");
         UUID gameId = preparedState.getId();

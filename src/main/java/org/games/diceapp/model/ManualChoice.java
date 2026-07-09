@@ -1,4 +1,11 @@
 package org.games.diceapp.model;
 
-public record ManualChoice(int rollNumber, Category category, ChoiceAction action) {
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
+public record ManualChoice(
+        @Min(1) @Max(13) int rollNumber,
+        @NotNull Category category,
+        @NotNull ChoiceAction action) {
 }
