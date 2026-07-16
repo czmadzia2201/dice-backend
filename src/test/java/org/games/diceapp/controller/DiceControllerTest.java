@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -113,7 +112,7 @@ class DiceControllerTest {
 
         when(diceService.rollDice(gameId, diceToRoll)).thenReturn(gameState);
 
-        mockMvc.perform(post(format("/dice/%s/roll", gameId))
+        mockMvc.perform(post("/dice/{id}/roll", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(diceToRoll)))
                 .andExpect(status().isOk())
@@ -127,7 +126,7 @@ class DiceControllerTest {
 
         when(diceService.rollDice(gameId, diceToRoll)).thenThrow(new GameNotFoundException(gameId));
 
-        mockMvc.perform(post(format("/dice/%s/roll", gameId))
+        mockMvc.perform(post("/dice/{id}/roll", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(diceToRoll)))
                 .andExpect(status().isNotFound())
@@ -148,7 +147,7 @@ class DiceControllerTest {
         when(diceService.rollDice(gameId, diceToRoll))
                 .thenThrow(new IllegalArgumentException("DiceToRoll must contain exactly 5 values."));
 
-        mockMvc.perform(post(format("/dice/%s/roll", gameId))
+        mockMvc.perform(post("/dice/{id}/roll", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(diceToRoll)))
                 .andExpect(status().isBadRequest())
@@ -164,7 +163,7 @@ class DiceControllerTest {
     void rollDiceEndpoint_invalidBody_shouldReturnBadRequestStatus() throws Exception {
         GameState gameState = new GameState();
 
-        mockMvc.perform(post(format("/dice/%s/roll", gameState.getId()))
+        mockMvc.perform(post("/dice/{id}/roll", gameState.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(List.of(true, true, true, "abc", true))))
                 .andExpect(status().isBadRequest());
@@ -176,7 +175,7 @@ class DiceControllerTest {
     void rollDiceEndpoint_nullBody_shouldReturnBadRequestStatus() throws Exception {
         GameState gameState = new GameState();
 
-        mockMvc.perform(post(format("/dice/%s/roll", gameState.getId()))
+        mockMvc.perform(post("/dice/{id}/roll", gameState.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(null)))
                 .andExpect(status().isBadRequest());
@@ -191,7 +190,7 @@ class DiceControllerTest {
 
         when(diceService.scoreCategory(gameId, Category.SIXES)).thenReturn(gameState);
 
-        mockMvc.perform(post(format("/dice/%s/score", gameId))
+        mockMvc.perform(post("/dice/{id}/score", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Category.SIXES)))
                 .andExpect(status().isOk())
@@ -206,7 +205,7 @@ class DiceControllerTest {
         when(diceService.scoreCategory(gameId, Category.SIXES))
                 .thenThrow(new IllegalStateException("Action not allowed at this state of the game."));
 
-        mockMvc.perform(post(format("/dice/%s/score", gameId))
+        mockMvc.perform(post("/dice/{id}/score", gameId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Category.SIXES)))
                 .andExpect(status().isBadRequest())
@@ -222,7 +221,7 @@ class DiceControllerTest {
     void scoreCategoryEndpoint_invalidBody_shouldReturnBadRequestStatus() throws Exception {
         GameState gameState = new GameState();
 
-        mockMvc.perform(post(format("/dice/%s/score", gameState.getId()))
+        mockMvc.perform(post("/dice/{id}/score", gameState.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString("BANANA")))
                 .andExpect(status().isBadRequest());
@@ -234,7 +233,7 @@ class DiceControllerTest {
     void scoreCategoryEndpoint_nullBody_shouldReturnBadRequestStatus() throws Exception {
         GameState gameState = new GameState();
 
-        mockMvc.perform(post(format("/dice/%s/score", gameState.getId()))
+        mockMvc.perform(post("/dice/{id}/score", gameState.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(null)))
                 .andExpect(status().isBadRequest());
@@ -249,7 +248,7 @@ class DiceControllerTest {
         UUID gameId = gameState.getId();
         when(diceService.optimalScore(gameId)).thenReturn(gameState);
 
-        mockMvc.perform(post(format("/dice/%s/optimal", gameId)))
+        mockMvc.perform(post("/dice/{id}/optimal", gameId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(gameId.toString()));
     }
@@ -261,7 +260,7 @@ class DiceControllerTest {
         UUID gameId = gameState.getId();
         when(diceService.initManualGame(gameId)).thenReturn(gameState);
 
-        mockMvc.perform(post(format("/dice/%s/init-manual", gameId)))
+        mockMvc.perform(post("/dice/{id}/init-manual", gameId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(gameId.toString()));
     }
@@ -274,7 +273,7 @@ class DiceControllerTest {
         UUID gameId = gameState.getId();
         when(diceService.manualScore(gameId, choice)).thenReturn(gameState);
 
-        mockMvc.perform(post(format("/dice/%s/manual", gameId))
+        mockMvc.perform(post("/dice/{id}/manual", gameId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(choice)))
                 .andExpect(status().isOk())
@@ -286,7 +285,7 @@ class DiceControllerTest {
     void manualEndpoint_invalidBody_shouldReturnBadRequestStatus(ManualChoice choice) throws Exception {
         GameState gameState = new GameState();
 
-        mockMvc.perform(post(format("/dice/%s/manual", gameState.getId()))
+        mockMvc.perform(post("/dice/{id}/manual", gameState.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(choice)))
                 .andExpect(status().isBadRequest());
@@ -307,7 +306,7 @@ class DiceControllerTest {
     void manualEndpoint_nullBody_shouldReturnBadRequestStatus() throws Exception {
         GameState gameState = new GameState();
 
-        mockMvc.perform(post(format("/dice/%s/manual", gameState.getId()))
+        mockMvc.perform(post("/dice/{id}/manual", gameState.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(null)))
                 .andExpect(status().isBadRequest());
