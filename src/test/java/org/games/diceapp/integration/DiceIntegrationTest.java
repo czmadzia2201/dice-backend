@@ -27,7 +27,7 @@ class DiceIntegrationTest {
     @Test
     void shouldCreateNewGame() {
         // WHEN
-        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/new-game", RollMode.SINGLE_ROLL, GameState.class);
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/new-game", RollMode.SINGLE_ROLL, GameState.class);
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -43,7 +43,7 @@ class DiceIntegrationTest {
     @Test
     void shouldCreateNewGameWhenRollingWithoutId() {
         // WHEN
-        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/roll", RollMode.SINGLE_ROLL, GameState.class);
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/roll", RollMode.SINGLE_ROLL, GameState.class);
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -58,13 +58,13 @@ class DiceIntegrationTest {
     @Test
     void shouldRollDiceForExistingGame() {
         // GIVEN
-        ResponseEntity<GameState> newGameResponse = restTemplate.postForEntity("/dice/new-game", RollMode.SINGLE_ROLL, GameState.class);
+        ResponseEntity<GameState> newGameResponse = restTemplate.postForEntity("/new-game", RollMode.SINGLE_ROLL, GameState.class);
         assertThat(newGameResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         UUID gameId = newGameResponse.getBody().getId();
         List<Boolean> diceToRoll = List.of(true, true, true, true, true);
 
         // WHEN
-        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/" + gameId + "/roll", diceToRoll, GameState.class);
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -86,7 +86,7 @@ class DiceIntegrationTest {
         List<Boolean> diceToRoll = List.of(false, false, false, true, false);
 
         // WHEN
-        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/" + gameId + "/roll", diceToRoll, GameState.class);
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -104,17 +104,17 @@ class DiceIntegrationTest {
     void shouldAllowOneRollForSingleRollMode() {
         // WHEN
         List<Boolean> diceToRoll = List.of(true, true, true, true, true);
-        ResponseEntity<GameState> newGameResponse = restTemplate.postForEntity("/dice/new-game", RollMode.SINGLE_ROLL, GameState.class);
+        ResponseEntity<GameState> newGameResponse = restTemplate.postForEntity("/new-game", RollMode.SINGLE_ROLL, GameState.class);
 
         // THEN
         UUID gameId = newGameResponse.getBody().getId();
         assertThat(newGameResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        ResponseEntity<GameState> response1 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        ResponseEntity<GameState> response1 = restTemplate.postForEntity("/" + gameId + "/roll", diceToRoll, GameState.class);
         assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response1.getBody().getRollNumberInTurn()).isEqualTo(1);
 
-        ResponseEntity<String> response2 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, String.class);
+        ResponseEntity<String> response2 = restTemplate.postForEntity("/" + gameId + "/roll", diceToRoll, String.class);
         assertThat(response2.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
@@ -122,24 +122,24 @@ class DiceIntegrationTest {
     void shouldAllowThreeRollsForThreeRollsMode() {
         // WHEN
         List<Boolean> diceToRoll = List.of(true, true, true, true, true);
-        ResponseEntity<GameState> newGameResponse = restTemplate.postForEntity("/dice/new-game", RollMode.THREE_ROLLS, GameState.class);
+        ResponseEntity<GameState> newGameResponse = restTemplate.postForEntity("/new-game", RollMode.THREE_ROLLS, GameState.class);
 
         // THEN
         UUID gameId = newGameResponse.getBody().getId();
 
-        ResponseEntity<GameState> response1 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        ResponseEntity<GameState> response1 = restTemplate.postForEntity("/" + gameId + "/roll", diceToRoll, GameState.class);
         assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response1.getBody().getRollNumberInTurn()).isEqualTo(1);
 
-        ResponseEntity<GameState> response2 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        ResponseEntity<GameState> response2 = restTemplate.postForEntity("/" + gameId + "/roll", diceToRoll, GameState.class);
         assertThat(response2.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response2.getBody().getRollNumberInTurn()).isEqualTo(2);
 
-        ResponseEntity<GameState> response3 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        ResponseEntity<GameState> response3 = restTemplate.postForEntity("/" + gameId + "/roll", diceToRoll, GameState.class);
         assertThat(response3.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response3.getBody().getRollNumberInTurn()).isEqualTo(3);
 
-        ResponseEntity<String> response4 = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, String.class);
+        ResponseEntity<String> response4 = restTemplate.postForEntity("/" + gameId + "/roll", diceToRoll, String.class);
         assertThat(response4.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
@@ -150,7 +150,7 @@ class DiceIntegrationTest {
         List<Boolean> diceToRoll = List.of(true, true, true, true, true);
 
         // WHEN
-        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/" + gameId + "/roll", diceToRoll, GameState.class);
 
         // THEN
         assertThat(rollResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -159,15 +159,15 @@ class DiceIntegrationTest {
     @Test
     void shouldScoreCategory() {
         // GIVEN
-        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/dice/roll", RollMode.THREE_ROLLS, GameState.class);
+        ResponseEntity<GameState> rollResponse = restTemplate.postForEntity("/roll", RollMode.THREE_ROLLS, GameState.class);
         GameState initialState = rollResponse.getBody();
         UUID gameId = initialState.getId();
 
         List<Boolean> diceToRoll = List.of(true, true, true, true, true);
-        restTemplate.postForEntity("/dice/" + gameId + "/roll", diceToRoll, GameState.class);
+        restTemplate.postForEntity("/" + gameId + "/roll", diceToRoll, GameState.class);
 
         // WHEN
-        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/" + gameId + "/score", Category.ONES, GameState.class);
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/" + gameId + "/score", Category.ONES, GameState.class);
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -188,7 +188,7 @@ class DiceIntegrationTest {
         gameStateStore.save(preparedState);
 
         // WHEN
-        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/" + gameId + "/optimal", null, GameState.class);
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/" + gameId + "/optimal", null, GameState.class);
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -207,7 +207,7 @@ class DiceIntegrationTest {
         gameStateStore.save(preparedState);
 
         // WHEN
-        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/" + gameId + "/init-manual", null, GameState.class);
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/" + gameId + "/init-manual", null, GameState.class);
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -227,7 +227,7 @@ class DiceIntegrationTest {
         ManualChoice choice = new ManualChoice(1, Category.ONES, ChoiceAction.ASSIGN);
 
         // WHEN
-        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/" + gameId + "/manual", choice, GameState.class);
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/" + gameId + "/manual", choice, GameState.class);
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -250,7 +250,7 @@ class DiceIntegrationTest {
         ManualChoice choice = new ManualChoice(12, Category.SIXES, ChoiceAction.CLEAR);
 
         // WHEN
-        ResponseEntity<GameState> response = restTemplate.postForEntity("/dice/" + gameId + "/manual", choice, GameState.class);
+        ResponseEntity<GameState> response = restTemplate.postForEntity("/" + gameId + "/manual", choice, GameState.class);
 
         // THEN
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);

@@ -76,6 +76,9 @@ npm install
 npm start
 ```
 
+### Swagger
+http://localhost:8080/dice/swagger-ui/index.html
+
 ---
 
 ## Development

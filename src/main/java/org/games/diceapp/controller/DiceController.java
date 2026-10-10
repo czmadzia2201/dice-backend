@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Validated
 @RestController
-@RequestMapping("/dice")
+@RequestMapping("/")
 @RequiredArgsConstructor
 public class DiceController {
 
