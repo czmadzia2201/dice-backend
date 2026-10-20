@@ -77,7 +77,7 @@ npm start
 ```
 
 ### Swagger
-http://localhost:8080/dice/swagger-ui/index.html
+http://localhost:8080/dice/api/swagger-ui/index.html
 
 ---
 
